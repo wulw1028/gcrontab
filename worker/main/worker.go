@@ -1,8 +1,8 @@
 package main
 
 import(
+    "github.com/wulw1028/gcrontab/worker"
     "runtime"
-    "github.com/wulw1028/gcrontab/master"
     "flag"
     "fmt"
 )
@@ -17,8 +17,8 @@ func initEnv(){
 
 // 解析命令行参数
 func initArgs(){
-    // master -config ./master.json
-    flag.StringVar(&confFile, "config", "./master.json", "指定master配置文件")
+    // worker -config ./worker.json
+    flag.StringVar(&confFile, "config", "./worker.json", "指定worker配置文件")
     flag.Parse()
 }
 
@@ -33,17 +33,17 @@ func main(){
     initEnv()
 
     // 加载配置
-    if err = master.InitConfig(confFile);err != nil {
+    if err = worker.InitConfig(confFile);err != nil {
+        goto ERR
+    }
+
+    // 启动调度器
+    if err = worker.InitScheduler();err != nil{
         goto ERR
     }
 
     // 任务管理器
-    if err = master.InitJobMgr();err != nil{
-        goto ERR
-    }
-
-    // 启动HttpApi服务
-    if err = master.InitApiServer(); err != nil {
+    if err = worker.InitJobMgr();err != nil{
         goto ERR
     }
 

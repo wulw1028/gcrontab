@@ -1,10 +1,10 @@
 package master
 
-import(
-    "github.com/wulw1028/go-crontab/common"
+import (
     "encoding/json"
-    "net/http"
+    "github.com/wulw1028/gcrontab/common"
     "net"
+    "net/http"
     "time"
 )
 
@@ -113,15 +113,24 @@ ERR:
 // POST /job/kill name=job1
 func handleJobKill(w http.ResponseWriter, r *http.Request){
     var(
+        name string
         err error
+        bytes []byte
     )
 
     if err = r.ParseForm();err != nil{
         goto ERR
     }
 
-    if bytes,err = common.BuildResponse(0, "sucess", jobList);err == nil{
-        w.Writebytes)
+    name = r.PostForm.Get("name")
+
+    // 杀死任务
+    if err = G_jobMgr.KillJob(name);err != nil{
+        goto ERR
+    }
+
+    if bytes,err = common.BuildResponse(0, "sucess", nil);err == nil{
+        w.Write(bytes)
     }
     return
 
@@ -137,6 +146,8 @@ func InitApiServer()(err error){
         mux *http.ServeMux
         listener net.Listener
         httpServer *http.Server
+        staticDir http.Dir
+        staticHander http.Handler
     )
 
     // 配置路由
@@ -145,6 +156,12 @@ func InitApiServer()(err error){
     mux.HandleFunc("/job/delete", handleJobDelete)
     mux.HandleFunc("/job/list", handleJobList)
     mux.HandleFunc("/job/kill", handleJobKill)
+
+    // 静态文件目录
+    staticDir = http.Dir(G_config.WebRoot)
+    staticHander = http.FileServer(staticDir)
+    mux.Handle("/", http.StripPrefix("/", staticHander))
+
 
     // 监听服务
     if listener, err = net.Listen("tcp", G_config.ApiPort); err != nil{

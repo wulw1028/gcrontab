@@ -1,4 +1,4 @@
-package master
+package worker
 
 import(
     "io/ioutil"
@@ -10,12 +10,8 @@ var(
 )
 
 type Config struct{
-    ApiPort string `json:"apiPort"`
-    ApiReadTimeout int `json:"apiReadTimeout"`
-    ApiWriteTimeout int `json:"apiWriteTimeout"`
     EtcdEndpoints []string `json:"etcdEndpoints"`
     EtcdDialTimeout int `json:"etcdDialTimeout"`
-    WebRoot string `json:"webroot"`
 }
 
 func InitConfig(filename string)(err error){
